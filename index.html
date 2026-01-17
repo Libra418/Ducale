@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>要寫什麼</title>
+    <title>Ducale 杜卡勒菜單</title>
     <style>
-        /* CSS區域 控制外觀*/
+        /* --- CSS 區域 --- */
         
         /* 1. 全域設定 */
         :root {
@@ -25,16 +25,19 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
+            padding-bottom: 80px; /* 預留空間給底部結帳列 */
         }
 
-        /* 2. Hero Section (首頁大圖區) */
+        /* 2. Hero Section */
         header {
             background-color: #333;
             color: white;
             text-align: center;
             padding: 80px 20px;
-            background-image: url('images/main-big.jpg');
+            /* 如果你有圖片，把下面這行打開 */
+            /* background-image: url('images/main-big.jpg'); */
             background-size: cover;
+            background-position: center;
         }
 
         h1 {
@@ -44,7 +47,7 @@
 
         .status-badge {
             display: inline-block;
-            background: #2ecc71; /* 綠色代表營業中 */
+            background: #2ecc71;
             color: white;
             padding: 5px 15px;
             border-radius: 20px;
@@ -53,9 +56,9 @@
             margin-top: 10px;
         }
 
-        /* 3. 菜單區 (RWD 響應式排版) */
+        /* 3. 菜單區 */
         .container {
-            max-width: 800px; /* 限制內容最大寬度 */
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -70,12 +73,10 @@
 
         .menu-grid {
             display: grid;
-            /* 手機版一行一個，電腦版一行兩個 */
             grid-template-columns: 1fr; 
             gap: 20px;
         }
 
-        /* 螢幕寬度大於 600px 時 (平板/電腦) */
         @media (min-width: 600px) {
             .menu-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -116,6 +117,95 @@
             text-decoration: none;
             border-radius: 5px;
         }
+
+        /* 5. 購物車/結帳列樣式 */
+        .cart-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            transform: translateY(100%); /* 預設隱藏 */
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .cart-bar.active {
+            transform: translateY(0);
+        }
+
+        .total-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .btn-checkout {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .add-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 6. 購物車詳細清單 (抽屜面板) */
+        .cart-drawer {
+            position: fixed;
+            bottom: 70px;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.3s ease-out;
+            z-index: 999;
+        }
+
+        .cart-drawer.open {
+            max-height: 60vh;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .cart-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .btn-remove {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -126,13 +216,12 @@
     </header>
 
     <main class="container">
-        
         <div style="text-align: center;">
             <h2 class="section-title">熱門菜單</h2>
         </div>
 
         <div id="menu-container" class="menu-grid">
-        </div>
+            </div>
 
         <div style="text-align: center;">
             <h2 class="section-title">店鋪資訊</h2>
@@ -140,24 +229,32 @@
             <p>⏰ 營業時間：11:30 - 20:30 (週日公休)</p>
             <a href="tel:2686550" class="btn-call">📞 打電話訂餐</a>
         </div>
-
     </main>
 
     <footer>
         <p>&copy; 2026 Ducale. Designed by Future Engineer.</p>
     </footer>
 
+    <div id="cart-drawer" class="cart-drawer">
+        </div>
+
+    <div id="cart-bar" class="cart-bar">
+        <div class="cart-info" onclick="toggleCart()" style="cursor: pointer;">
+            <span>已點 <span id="total-count">0</span> 份餐點 (點我查看)</span>
+            <span class="total-price">總計 $<span id="total-amount">0</span></span>
+            <span id="arrow-icon">🔼</span>
+        </div>
+        <button class="btn-checkout" onclick="alert('老闆還沒寫後端，請直接跟老闆點餐！XD')">確認點餐</button>
+    </div>
+
     <script>
-        // --- 1. 定義資料結構 (Data Structure) ---
-        // 這就像在 C 語言定義一個 Struct Array
-        // 以後要改菜單，只要動這裡就好！
+        // --- 1. 定義資料結構 ---
         const menuData = [
             { 
                 name: "奶油蛤蜊", 
                 desc: "好吃", 
                 price: 130,
-                recommended: true // 可以加個布林值標記是否為推薦
-                //image: "images/beef-noodle.jpg"
+                recommended: true
             },
             { 
                 name: "白酒蝦仁", 
@@ -191,41 +288,128 @@
             }
         ];
     
-        // --- 2. 渲染函式 (Render Function) ---
-        const menuContainer = document.getElementById('menu-container');
-        
-        // 使用 map 或 forEach 跑迴圈
-        let menuHTML = '';
+        // --- 2. 購物車狀態 ---
+        let cart = []; 
+        let totalAmount = 0;
     
-        menuData.forEach(item => {
-            // 這裡用的是 ES6 的「樣板字面值 (Template Literals)」
-            // 也就是反引號 ` `，讓我們可以把 HTML 當字串寫，還能塞變數 ${}
-            menuHTML += `
+        // --- 3. 渲染函式 (初始化菜單) ---
+        const menuContainer = document.getElementById('menu-container');
+        menuContainer.innerHTML = ''; // 清空
+    
+        menuData.forEach((item, index) => {
+            // 圖片處理 (如果沒有圖片就不顯示)
+            const imageTag = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin-right: 15px;">` : '';
+    
+            // 按鈕邏輯處理
+            let actionButton = '';
+            if (typeof item.price === 'number') {
+                actionButton = `<button class="add-btn" onclick="addToCart(${index})">＋ 加入</button>`;
+            } else {
+                actionButton = `<span style="color: #999; font-size: 0.8rem;">(純欣賞)</span>`;
+            }
+    
+            menuContainer.innerHTML += `
                 <div class="menu-item" style="${item.recommended ? 'border-left: 5px solid var(--primary-color);' : ''}">
-                    <div class="item-info">
+                    ${imageTag}
+                    <div class="item-info" style="flex: 1;">
                         <h3>${item.name} ${item.recommended ? '👍' : ''}</h3>
                         <p class="item-desc">${item.desc}</p>
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span class="item-price">${typeof item.price === 'number' ? '$' + item.price : item.price}</span>
+                            ${actionButton}
+                        </div>
                     </div>
-                    <div class="item-price">$${item.price}</div>
                 </div>
             `;
         });
     
-        // 將組好的 HTML 字串一次注入到網頁中
-        menuContainer.innerHTML = menuHTML;
+        // --- 4. 點餐與互動邏輯 ---
+
+        // 加入購物車
+        function addToCart(index) {
+            const selectedItem = menuData[index];
+            
+            if (typeof selectedItem.price !== 'number') {
+                alert("這個不能點啦！");
+                return;
+            }
+
+            cart.push(selectedItem);
+            recalculateAndRender();
+        }
+
+        // 移除購物車
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            recalculateAndRender();
+        }
+
+        // 統一處理「計算金額」與「更新畫面」
+        function recalculateAndRender() {
+            // 1. 重算總金額
+            totalAmount = 0;
+            cart.forEach(item => {
+                totalAmount += item.price;
+            });
+
+            // 2. 更新下方 Bar 的數字
+            document.getElementById('total-count').innerText = cart.length;
+            document.getElementById('total-amount').innerText = totalAmount;
+
+            // 3. 更新購物車抽屜的清單內容
+            const drawer = document.getElementById('cart-drawer');
+            drawer.innerHTML = ''; // 先清空
+
+            cart.forEach((item, index) => {
+                drawer.innerHTML += `
+                    <div class="cart-list-item">
+                        <span>${item.name}</span>
+                        <div>
+                            <span style="font-weight:bold;">$${item.price}</span>
+                            <button class="btn-remove" onclick="removeFromCart(${index})">✕</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 4. 控制 Bar 的顯示/隱藏
+            const cartBar = document.getElementById('cart-bar');
+            if (cart.length > 0) {
+                cartBar.classList.add('active');
+            } else {
+                cartBar.classList.remove('active');
+                toggleCart(false); // 強制關閉抽屜
+            }
+        }
+
+        // 開關購物車抽屜
+        function toggleCart(forceState) {
+            const drawer = document.getElementById('cart-drawer');
+            const arrow = document.getElementById('arrow-icon');
+            
+            const isOpen = typeof forceState !== 'undefined' ? forceState : !drawer.classList.contains('open');
+
+            if (isOpen) {
+                drawer.classList.add('open');
+                arrow.innerText = '🔽'; 
+            } else {
+                drawer.classList.remove('open');
+                arrow.innerText = '🔼'; 
+            }
+        }
     
-    
-        // --- 3. 營業時間邏輯 (原本的程式碼保留) ---
+        // --- 5. 營業時間邏輯 ---
         const now = new Date();
         const hour = now.getHours(); 
         const day = now.getDay();    
     
         const statusBadge = document.getElementById('shop-status');
         
-        if (day === 1) { // 假設週一公休
+        // 週日(0)公休
+        if (day === 0) { 
             statusBadge.innerText = "今日公休";
             statusBadge.style.background = "#7f8c8d";
-        } else if (hour >= 11 && hour < 20) {
+        } else if (hour >= 11 && hour < 21) { 
             statusBadge.innerText = "營業中 - 歡迎光臨";
             statusBadge.style.background = "#2ecc71";
         } else {
