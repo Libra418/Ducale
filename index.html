@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>要寫什麼</title>
+    <style>
+        /* CSS區域 控制外觀*/
+        
+        /* 1. 全域設定 */
+        :root {
+            --primary-color: #d35400; /* 主色調*/
+            --bg-color: #fdfbf7;      /* 背景 */
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* 2. Hero Section (首頁大圖區) */
+        header {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+            /* 這裡之後可以換成你修好的麵店照片 */
+            /* background-image: url('noodle.jpg'); */ 
+            /* background-size: cover; */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #2ecc71; /* 綠色代表營業中 */
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* 3. 菜單區 (RWD 響應式排版) */
+        .container {
+            max-width: 800px; /* 限制內容最大寬度 */
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin: 40px 0 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            display: inline-block;
+        }
+
+        .menu-grid {
+            display: grid;
+            /* 手機版一行一個，電腦版一行兩個 */
+            grid-template-columns: 1fr; 
+            gap: 20px;
+        }
+
+        /* 螢幕寬度大於 600px 時 (平板/電腦) */
+        @media (min-width: 600px) {
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .menu-item {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-info h3 { margin-bottom: 5px; }
+        .item-desc { font-size: 0.9rem; color: #666; }
+        .item-price { font-weight: bold; color: var(--primary-color); font-size: 1.2rem; }
+
+        /* 4. 底部資訊 */
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-call {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ducale</h1> <p>杜卡勒</p>
+        <div id="shop-status" class="status-badge">檢查營業時間中...</div>
+    </header>
+
+    <main class="container">
+        
+        <div style="text-align: center;">
+            <h2 class="section-title">熱門菜單</h2>
+        </div>
+
+        <div id="menu-container" class="menu-grid">
+        </div>
+
+        <div style="text-align: center;">
+            <h2 class="section-title">店鋪資訊</h2>
+            <p>📍 地址：台南市東區榮譽街121-6號</p>
+            <p>⏰ 營業時間：11:30 - 20:30 (週日公休)</p>
+            <a href="tel:2686550" class="btn-call">📞 打電話訂餐</a>
+        </div>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Ducale. Designed by Future Engineer.</p>
+    </footer>
+
+    <script>
+        // --- 1. 定義資料結構 (Data Structure) ---
+        // 這就像在 C 語言定義一個 Struct Array
+        // 以後要改菜單，只要動這裡就好！
+        const menuData = [
+            { 
+                name: "奶油蛤蜊", 
+                desc: "好吃", 
+                price: 130,
+                recommended: true // 可以加個布林值標記是否為推薦
+            },
+            { 
+                name: "白酒蝦仁", 
+                desc: "很好吃", 
+                price: 130, 
+                recommended: false 
+            },
+            { 
+                name: "焗烤", 
+                desc: "有起司", 
+                price: 150, 
+                recommended: true 
+            },
+            { 
+                name: "鍋燒", 
+                desc: "哈哈", 
+                price: 85, 
+                recommended: false 
+            },
+            { 
+                name: "紅茶", 
+                desc: "不是綠茶", 
+                price: 35, 
+                recommended: false 
+            },
+            { 
+                name: "綠茶", 
+                desc: "不是紅茶", 
+                price: 35, 
+                recommended: false 
+            }
+        ];
+    
+        // --- 2. 渲染函式 (Render Function) ---
+        const menuContainer = document.getElementById('menu-container');
+        
+        // 使用 map 或 forEach 跑迴圈
+        let menuHTML = '';
+    
+        menuData.forEach(item => {
+            // 這裡用的是 ES6 的「樣板字面值 (Template Literals)」
+            // 也就是反引號 ` `，讓我們可以把 HTML 當字串寫，還能塞變數 ${}
+            menuHTML += `
+                <div class="menu-item" style="${item.recommended ? 'border-left: 5px solid var(--primary-color);' : ''}">
+                    <div class="item-info">
+                        <h3>${item.name} ${item.recommended ? '👍' : ''}</h3>
+                        <p class="item-desc">${item.desc}</p>
+                    </div>
+                    <div class="item-price">$${item.price}</div>
+                </div>
+            `;
+        });
+    
+        // 將組好的 HTML 字串一次注入到網頁中
+        menuContainer.innerHTML = menuHTML;
+    
+    
+        // --- 3. 營業時間邏輯 (原本的程式碼保留) ---
+        const now = new Date();
+        const hour = now.getHours(); 
+        const day = now.getDay();    
+    
+        const statusBadge = document.getElementById('shop-status');
+        
+        if (day === 1) { // 假設週一公休
+            statusBadge.innerText = "今日公休";
+            statusBadge.style.background = "#7f8c8d";
+        } else if (hour >= 11 && hour < 20) {
+            statusBadge.innerText = "營業中 - 歡迎光臨";
+            statusBadge.style.background = "#2ecc71";
+        } else {
+            statusBadge.innerText = "休息中 - 明天見";
+            statusBadge.style.background = "#e74c3c";
+        }
+    </script>
+</body>
+</html>
