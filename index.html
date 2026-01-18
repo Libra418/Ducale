@@ -163,10 +163,26 @@
     </div>
 
     <section id="page-home" class="page-section active">
-        <div style="text-align: center; padding: 40px 20px; background: #333; color: white; min-height: 80vh; display: flex; flex-direction: column; justify-content: center;">
-            <h1>Ducale 杜卡勒</h1>
-            <p style="margin: 20px 0;">老闆兒子很帥</p>
-            <div style="margin-top: 20px; padding: 12px 30px; background: var(--primary-color); border-radius: 30px; display: inline-block; cursor: pointer; font-weight: bold;" onclick="switchPage('menu')">開始點餐</div>
+        <div style="
+            text-align: center; 
+            padding: 40px 20px; 
+            
+            /* 背景圖片設定區 */
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('images/main-big.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            
+            color: white; 
+            min-height: 80vh; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        ">
+            <h1 style="font-size: 3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Ducale 杜卡勒</h1>
+            <p style="margin: 20px 0; font-size: 1.2rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">用心熬煮的義式靈魂</p>
+            
+            <div style="margin-top: 20px; padding: 12px 30px; background: var(--primary-color); border-radius: 30px; display: inline-block; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(211, 84, 0, 0.4);" onclick="switchPage('menu')">開始點餐</div>
         </div>
     </section>
 
@@ -305,7 +321,7 @@
             renderMenu();
         }
 
-        // --- 3. Modal 邏輯 (重要修改) ---
+        // --- 3. Modal 邏輯 ---
 
         function openModal(name, price, category) {
             tempSelectedItem = { name, price, category };
@@ -328,7 +344,7 @@
             } else {
                 noodleOptionsDiv.style.display = 'block';
                 
-                // *** 新增邏輯：白酒系列只能選細麵 ***
+                // *** 白酒系列只能選細麵 ***
                 if (category.includes("白酒")) {
                     typeP.disabled = true; // 禁用筆尖麵
                 }
