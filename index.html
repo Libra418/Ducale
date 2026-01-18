@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ducale 杜卡勒 - 義式餐酒館</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CSS 區域 --- */
+        :root {
+            --primary-color: #d35400;
+            --bg-color: #fdfbf7;
+            --text-color: #333;
+            --sidebar-width: 250px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 80px; 
+            overflow-x: hidden;
+        }
+
+        /* --- UI 元件 --- */
+        .navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 2000;
+            display: flex; align-items: center; padding: 0 20px; justify-content: space-between;
+        }
+        .hamburger-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: #333; padding: 5px; }
+        .brand-name { font-size: 1.3rem; font-weight: bold; margin-left: 15px; color: var(--text-color); letter-spacing: 1px; }
+        
+        .table-badge {
+            background: #95a5a6; /* 預設灰色 */
+            color: white; padding: 5px 15px;
+            border-radius: 20px; font-weight: bold; font-size: 0.9rem;
+        }
+        .table-badge.active { background: var(--primary-color); }
+
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2001; display: none; opacity: 0; transition: opacity 0.3s;
+        }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
+        .sidebar {
+            position: fixed; top: 0; left: -250px; width: var(--sidebar-width); height: 100%;
+            background: white; z-index: 2002; transition: left 0.3s ease-out;
+            padding-top: 60px; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-link { display: block; padding: 15px 25px; text-decoration: none; color: #333; border-bottom: 1px solid #eee; transition: 0.2s; }
+        .sidebar-link:hover { background: #f9f9f9; color: var(--primary-color); }
+        .sidebar-close { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; background: none; border: none; cursor: pointer; }
+
+        .page-section { display: none; padding-top: 60px; min-height: 100vh; animation: fadeIn 0.5s; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- 首頁 --- */
+        .hero-section {
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('images/main-big.jpg');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            height: 85vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white;
+        }
+        .hero-title { font-size: 3rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        .status-bar {
+            background: white; padding: 30px 20px; text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin: -50px 20px 20px 20px;
+            border-radius: 10px; position: relative; z-index: 10;
+        }
+        .status-indicator { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; }
+        .status-time { color: #666; font-size: 0.9rem; }
+
+        /* --- 點餐頁 --- */
+        .category-scroll {
+            display: flex; overflow-x: auto; white-space: nowrap; padding: 15px 10px;
+            position: sticky; top: 60px; background: var(--bg-color); z-index: 900;
+        }
+        .cat-btn {
+            background: white; border: 1px solid #ddd; color: #666;
+            padding: 8px 18px; margin: 0 5px; border-radius: 20px; cursor: pointer; flex-shrink: 0; transition: 0.2s;
+        }
+        .cat-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* --- 醬汁過濾按鈕區 --- */
+        .sauce-scroll {
+            display: none; /* 預設隱藏 */
+            overflow-x: auto; white-space: nowrap; padding: 10px 15px;
+            background: #fdfbf7; z-index: 899;
+            border-bottom: 1px solid #eee;
+        }
+        .sauce-btn {
+            background: transparent; border: 1px solid #ccc; color: #666;
+            padding: 5px 15px; margin-right: 8px; border-radius: 15px; 
+            cursor: pointer; font-size: 0.9rem; transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .sauce-btn.active {
+            background: #e67e22; color: white; border-color: #e67e22;
+        }
+        .select-sauce-msg {
+            text-align: center; padding: 40px; color: #999; font-size: 1.1rem;
+        }
+
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 0 15px; max-width: 800px; margin: 0 auto; }
+        @media (min-width: 600px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .menu-item {
+            background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;
+        }
+        .menu-item.disabled { cursor: default; opacity: 0.8; }
+        .item-price { font-weight: bold; color: var(--primary-color); font-size: 1.1rem; }
+
+        /* --- 其他 --- */
+        .info-card { background: white; max-width: 600px; margin: 20px auto; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .info-row { display: flex; margin-bottom: 15px; align-items: flex-start; }
+        .info-icon { margin-right: 10px; font-size: 1.2rem; }
+        
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; max-width: 800px; margin: 0 auto; }
+        .gallery-item { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; position: relative; }
+        .gallery-thumb { width: 100%; padding-top: 100%; background-size: cover; background-position: center; background-color: #eee; }
+        .gallery-name { padding: 10px; text-align: center; font-size: 0.9rem; font-weight: bold; }
+
+        /* --- Modals --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 3000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        
+        .modal-content {
+            background: white; width: 90%; max-width: 400px; padding: 25px;
+            border-radius: 15px; position: relative; animation: popUp 0.3s;
+        }
+        @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .img-modal-content { padding: 0; overflow: hidden; background: transparent; max-width: 500px; }
+        .img-display { width: 100%; display: block; border-radius: 10px; }
+        .img-modal-close { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+
+        .success-icon { font-size: 4rem; color: #2ecc71; text-align: center; display: block; margin-bottom: 20px; }
+        .order-summary { background: #f9f9f9; padding: 15px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; max-height: 200px; overflow-y: auto; }
+
+        .cart-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #2c3e50; color: white;
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            transform: translateY(100%); transition: transform 0.3s; z-index: 1000;
+        }
+        .cart-bar.active { transform: translateY(0); }
+        .cart-drawer { position: fixed; bottom: 70px; left: 0; width: 100%; background: white; max-height: 0; overflow-y: auto; transition: max-height 0.3s; z-index: 999; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+        .cart-drawer.open { max-height: 60vh; border-top: 4px solid var(--primary-color); }
+        .cart-list-item { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+
+        .radio-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin: 10px 0 20px 0;}
+        .radio-btn-label { text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        input[type="radio"]:checked + .radio-btn-label { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        input[type="radio"]:disabled + .radio-btn-label { background: #f0f0f0; color: #ccc; cursor: not-allowed; }
+        input[type="radio"] { display: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div style="display:flex; align-items:center;">
+            <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+            <div class="brand-name">Ducale</div>
+        </div>
+        <div id="table-display" class="table-badge">純瀏覽模式</div>
+    </nav>
+
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="sidebar">
+        <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        <div style="padding: 30px 20px 20px; color: var(--primary-color); font-weight: bold; font-size: 1.2rem;">MENU</div>
+        <a href="#" class="sidebar-link" onclick="switchPage('home')">🏠 回到首頁</a>
+        <a href="#" class="sidebar-link" onclick="switchPage('info')">ℹ️ 店家資訊</a>
+        <a href="#" class="sidebar-link" onclick="switchPage('gallery')">📷 商品簡介</a>
+        <a href="#" class="sidebar-link" onclick="switchPage('menu')">🍝 線上點餐</a>
+    </div>
+
+    <section id="page-home" class="page-section active" style="padding-top: 0;">
+        <div class="hero-section">
+            <h1 class="hero-title">Ducale</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">用心熬煮的義式靈魂</p>
+            <div id="home-table-info" style="margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 15px; font-size: 0.9rem;"></div>
+            <div id="home-cta-btn" style="padding: 12px 35px; background: var(--primary-color); border-radius: 30px; cursor: pointer; font-weight: bold;" onclick="switchPage('menu')">查看菜單</div>
+        </div>
+        <div class="status-bar">
+            <div id="home-status-icon" class="status-indicator">檢查中...</div>
+            <div id="home-status-text" class="status-time"></div>
+            <div style="margin-top: 10px; font-size: 0.85rem; color: #888;">營業時段：11:30-14:30 / 17:30-20:30<br>(週日公休)</div>
+        </div>
+    </section>
+
+    <section id="page-menu" class="page-section" style="padding-top: 60px;">
+        <div class="category-scroll" id="category-bar"></div>
+        <div class="sauce-scroll" id="sauce-bar"></div>
+        <div id="menu-container" class="menu-grid"></div>
+        
+        <div id="view-only-msg" style="text-align:center; padding:20px; color:#999; display:none;">請掃描桌上 QR Code 即可進行點餐</div>
+    </section>
+
+    <section id="page-info" class="page-section">
+        <div class="info-card">
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">Ducale 杜卡勒</h2>
+            <div class="info-row"><span class="info-icon">📍</span><div><strong>地址</strong><br>台南市東區榮譽街121-6號</div></div>
+            <div class="info-row"><span class="info-icon">📞</span><div><strong>電話</strong><br><a href="tel:062686550" style="color: var(--primary-color); text-decoration: none;">06-268-6550</a></div></div>
+            <hr style="margin: 15px 0; border:0; border-top:1px solid #eee;">
+            <p>⏰ <strong>營業時間</strong></p>
+            <p>11:30 - 14:30 / 17:30 - 20:30</p>
+            <p style="color:#e74c3c;">(週日公休)</p>
+            
+            <iframe 
+                width="100%" 
+                height="300" 
+                style="border:0; border-radius:10px; margin-top:15px;" 
+                loading="lazy" 
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://maps.google.com/maps?q=Ducale%20%E6%9D%9C%E5%8D%A1%E5%8B%92%20%E5%8F%B0%E5%8D%97%E5%B8%82%E6%9D%B1%E5%8D%80%E6%A6%AE%E8%AD%BD%E8%A1%97121%E8%99%9F&t=&z=15&ie=UTF8&iwloc=&output=embed">
+            </iframe>
+            
+            <div style="text-align:center; margin-top:10px;">
+                <a href="https://maps.app.goo.gl/uX3QxQxQxQxQxQxQ" target="_blank" style="color:#666; font-size:0.9rem;">開啟 Google Maps 導航</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="page-gallery" class="page-section">
+        <div id="gallery-container" class="gallery-grid"></div>
+    </section>
+
+    <div id="option-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" style="text-align: center; margin-bottom: 15px;">菜名</h3>
+            
+            <div id="carb-options-container" style="margin-bottom: 15px;">
+                <label style="font-weight: bold;">選擇主食</label>
+                <div class="radio-group" id="carb-group"></div>
+            </div>
+
+            <div id="extra-options-container">
+                <label style="font-weight: bold;">客製化加量</label>
+                <div class="radio-group" id="extra-options-group"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="closeModal()" style="flex:1; padding: 12px; border:none; background:#ccc; border-radius:8px; cursor:pointer;">取消</button>
+                <button onclick="confirmAddToCart()" style="flex:1; padding: 12px; border:none; background:var(--primary-color); color:white; border-radius:8px; cursor:pointer;">加入</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal-overlay">
+        <div class="modal-content" style="text-align: center;">
+            <span class="success-icon">✔</span>
+            <h2>訂單已送出！</h2>
+            <h3 id="success-table" style="color: var(--primary-color); margin: 10px 0;">桌號：1</h3>
+            <div class="order-summary" id="success-summary"></div>
+            <h3 style="margin-bottom: 20px;">總金額：$<span id="success-total">0</span></h3>
+            <p class="success-text">請至櫃檯出示此畫面結帳</p>
+            <button onclick="closeSuccessModal()" style="width: 100%; padding: 15px; background: #333; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">關閉</button>
+        </div>
+    </div>
+
+    <div id="img-modal" class="modal-overlay" onclick="closeImgModal()">
+        <div class="modal-content img-modal-content" onclick="event.stopPropagation()">
+            <button class="img-modal-close" onclick="closeImgModal()">✕</button>
+            <img id="img-display" class="img-display" src="" alt="商品照片">
+            <div id="img-caption" style="padding: 15px; text-align: center; font-weight: bold;"></div>
+        </div>
+    </div>
+
+    <div id="cart-drawer" class="cart-drawer"></div>
+    <div id="cart-bar" class="cart-bar">
+        <div onclick="toggleCart()" style="cursor: pointer;">
+            <span>已點 <span id="total-count" style="font-weight:bold; color: #f1c40f;">0</span> 份｜</span>
+            <span style="font-size: 1.2rem; font-weight: bold;">$ <span id="total-amount">0</span></span>
+        </div>
+        <button onclick="submitOrder()" style="background: #f1c40f; color: #333; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">送出訂單</button>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentTable = urlParams.get('table');
+        const isViewOnly = !currentTable;
+
+        if (isViewOnly) {
+            document.getElementById('table-display').innerText = "純瀏覽模式";
+            document.getElementById('table-display').classList.remove('active');
+            document.getElementById('home-table-info').innerText = "未掃描桌號，僅供瀏覽菜單";
+            document.getElementById('home-cta-btn').innerText = "查看菜單";
+            document.getElementById('view-only-msg').style.display = "block";
+        } else {
+            document.getElementById('table-display').innerText = `桌號 ${currentTable}`;
+            document.getElementById('table-display').classList.add('active');
+            document.getElementById('home-table-info').innerText = `您目前的座位是：${currentTable} 號桌`;
+            document.getElementById('home-cta-btn').innerText = "開始點餐";
+            document.getElementById('view-only-msg').style.display = "none";
+        }
+
+        const menuData = {
+            "義大利麵": [
+                { name: "奶油蘑菇", price: 90 }, { name: "培根蘑菇", price: 100 },
+                { name: "奶油鮮蔬", price: 110 }, { name: "奶油嫩雞肉", price: 110 },
+                { name: "奶油蛤蜊", price: 110 }, { name: "奶油蝦仁", price: 130 },
+                { name: "奶油蘆筍蝦仁", price: 140 }, { name: "奶油海鮮", price: 150 },
+                { name: "番茄醬汁", price: 90 }, { name: "番茄肉醬", price: 110 },
+                { name: "番茄鮮蔬", price: 110 }, { name: "番茄嫩雞肉", price: 110 },
+                { name: "番茄蛤蜊", price: 110 }, { name: "番茄蝦仁", price: 130 },
+                { name: "番茄海鮮", price: 150 },
+                { name: "羅勒青", price: 90 }, 
+                { name: "羅勒鮮蔬", price: 110 }, { name: "羅勒嫩雞肉", price: 110 },
+                { name: "羅勒蛤蜊", price: 110 }, { name: "羅勒虱目魚", price: 110 },
+                { name: "羅勒蝦仁", price: 130 }, { name: "羅勒海鮮", price: 150 },
+                { name: "南瓜醬汁", price: 90 }, 
+                { name: "南瓜鮮蔬", price: 110 }, { name: "南瓜嫩雞肉", price: 110 },
+                { name: "南瓜蛤蜊", price: 110 }, { name: "南瓜蝦仁", price: 130 },
+                { name: "南瓜蘆筍蝦仁", price: 140 }, { name: "南瓜海鮮", price: 150 },
+            ],
+            "燉飯系列": [
+                { name: "奶油蘑菇", price: 90 }, { name: "培根蘑菇", price: 100 },
+                { name: "奶油鮮蔬", price: 110 }, { name: "奶油嫩雞肉", price: 110 },
+                { name: "奶油蛤蜊", price: 110 }, { name: "奶油蝦仁", price: 130 },
+                { name: "奶油蘆筍蝦仁", price: 140 }, { name: "奶油海鮮", price: 150 },
+                { name: "番茄醬汁", price: 90 }, { name: "番茄肉醬", price: 110 },
+                { name: "番茄鮮蔬", price: 110 }, { name: "番茄嫩雞肉", price: 110 },
+                { name: "番茄蛤蜊", price: 110 }, { name: "番茄蝦仁", price: 130 },
+                { name: "番茄海鮮", price: 150 },
+                { name: "羅勒青", price: 90 }, 
+                { name: "羅勒鮮蔬", price: 110 }, { name: "羅勒嫩雞肉", price: 110 },
+                { name: "羅勒蛤蜊", price: 110 }, { name: "羅勒虱目魚", price: 110 },
+                { name: "羅勒蝦仁", price: 130 }, { name: "羅勒海鮮", price: 150 },
+                { name: "南瓜醬汁", price: 90 }, 
+                { name: "南瓜鮮蔬", price: 110 }, { name: "南瓜嫩雞肉", price: 110 },
+                { name: "南瓜蛤蜊", price: 110 }, { name: "南瓜蝦仁", price: 130 },
+                { name: "南瓜蘆筍蝦仁", price: 140 }, { name: "南瓜海鮮", price: 150 },
+            ],
+            "鍋燒系列": [
+                { name: "鍋燒意麵", price: 85 }, { name: "鍋燒雞絲", price: 85 }, { name: "鍋燒泡飯", price: 85 }, { name: "鍋燒冬粉", price: 85 }
+            ],
+            "白酒系列": [
+                { name: "白酒雞肉", price: 140 }, { name: "白酒蛤蜊", price: 140 }, { name: "白酒蝦仁", price: 150 }, { name: "白酒海鮮", price: 170 }
+            ],
+            "焗烤系列": [
+                { name: "培根蘑菇", price: 140 },
+                { name: "奶油鮮蔬", price: 150 }, { name: "奶油嫩雞肉", price: 150 },
+                { name: "奶油蛤蜊", price: 150 }, { name: "奶油蝦仁", price: 170 },
+                { name: "奶油蘆筍蝦仁", price: 180 }, { name: "奶油海鮮", price: 190 },
+                { name: "番茄肉醬", price: 150 },
+                { name: "番茄鮮蔬", price: 150 }, { name: "番茄嫩雞肉", price: 150 },
+                { name: "番茄蛤蜊", price: 150 }, { name: "番茄蝦仁", price: 170 },
+                { name: "番茄海鮮", price: 190 },
+                { name: "羅勒鮮蔬", price: 150 }, { name: "羅勒嫩雞肉", price: 150 },
+                { name: "羅勒蛤蜊", price: 150 }, { name: "羅勒虱目魚", price: 150 },
+                { name: "羅勒蝦仁", price: 170 }, { name: "羅勒海鮮", price: 190 },
+                { name: "南瓜鮮蔬", price: 150 }, { name: "南瓜嫩雞肉", price: 150 },
+                { name: "南瓜蛤蜊", price: 150 }, { name: "南瓜蝦仁", price: 170 },
+                { name: "南瓜蘆筍蝦仁", price: 180 }, { name: "南瓜海鮮", price: 190 },
+                { name: "蘆筍培根捲", price: 160 }
+            ],
+            "甜點/濃湯": [
+                { name: "焦糖布丁", price: 45 }, { name: "今日濃湯", price: "35" }
+            ]
+        };
+
+        let cart = [];
+        let currentCategory = "義大利麵";
+        let tempSelectedItem = null;
+        let currentSauceFilter = null; 
+
+        // 醬汁關鍵字 (義大利麵/燉飯/焗烤 共用)
+        const sauceRules = {
+            "白醬": ["奶油", "白醬", "蘑菇"], 
+            "紅醬": ["番茄", "紅醬"],
+            "青醬": ["青醬", "羅勒"],
+            "南瓜醬": ["南瓜"],
+            "蘆筍培根捲": ["蘆筍培根捲"]
+        };
+
+        function checkBusinessStatus() {
+            const now = new Date();
+            const day = now.getDay(); 
+            const min = now.getHours() * 60 + now.getMinutes();
+            const icon = document.getElementById('home-status-icon');
+            const text = document.getElementById('home-status-text');
+
+            if (day === 0) {
+                icon.innerHTML = "💤 今日公休"; icon.style.color = "#7f8c8d"; text.innerText = "週日為固定公休日";
+            } else {
+                if ((min >= 690 && min < 870) || (min >= 1050 && min < 1230)) {
+                    icon.innerHTML = "🔥 營業中"; icon.style.color = "#2ecc71";
+                    text.innerText = (min < 870) ? "午餐時段 (11:30 - 14:30)" : "晚餐時段 (17:30 - 20:30)";
+                } else {
+                    icon.innerHTML = "⏳ 休息中"; icon.style.color = "#e67e22";
+                    text.innerText = "非營業時段，請參考下方營業時間";
+                }
+            }
+        }
+        checkBusinessStatus();
+
+        function renderCategories() {
+            const bar = document.getElementById('category-bar');
+            bar.innerHTML = '';
+            Object.keys(menuData).forEach(cat => {
+                const active = cat === currentCategory ? 'active' : '';
+                bar.innerHTML += `<button class="cat-btn ${active}" onclick="changeCategory('${cat}')">${cat}</button>`;
+            });
+        }
+
+        function changeCategory(cat) { 
+            currentCategory = cat; 
+            currentSauceFilter = null; 
+            renderCategories(); 
+            renderSauceBar(); 
+            renderMenu(); 
+        }
+
+        // --- 核心修改：判斷哪些類別需要選醬汁 ---
+        function renderSauceBar() {
+            const sauceBar = document.getElementById('sauce-bar');
+            
+            // 1. 義大利麵 & 燉飯 (標準 4 種)
+            if (currentCategory.includes("義大利麵") || currentCategory.includes("燉飯")) {
+                sauceBar.style.display = 'flex';
+                sauceBar.innerHTML = '';
+                const standardSauces = ["白醬", "紅醬", "青醬", "南瓜醬"];
+                standardSauces.forEach(sauceName => {
+                    const active = currentSauceFilter === sauceName ? 'active' : '';
+                    sauceBar.innerHTML += `<button class="sauce-btn ${active}" onclick="changeSauce('${sauceName}')">${sauceName}</button>`;
+                });
+            } 
+            // 2. 焗烤系列 (標準 4 種 + 蘆筍培根捲)
+            else if (currentCategory.includes("焗烤")) {
+                sauceBar.style.display = 'flex';
+                sauceBar.innerHTML = '';
+                const gratinSauces = ["白醬", "紅醬", "青醬", "南瓜醬", "蘆筍培根捲"];
+                gratinSauces.forEach(sauceName => {
+                    const active = currentSauceFilter === sauceName ? 'active' : '';
+                    sauceBar.innerHTML += `<button class="sauce-btn ${active}" onclick="changeSauce('${sauceName}')">${sauceName}</button>`;
+                });
+            } 
+            // 3. 其他 (隱藏)
+            else {
+                sauceBar.style.display = 'none';
+                currentSauceFilter = 'ALL'; 
+            }
+        }
+
+        function changeSauce(sauceName) {
+            currentSauceFilter = sauceName;
+            renderSauceBar(); 
+            renderMenu(); 
+        }
+
+        function renderMenu() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+
+            // 如果是 義大利麵/燉飯/焗烤，且還沒選醬汁 -> 提示選醬
+            if ((currentCategory.includes("義大利麵") || currentCategory.includes("燉飯") || currentCategory.includes("焗烤")) && !currentSauceFilter) {
+                container.innerHTML = `<div class="select-sauce-msg">👆 請先選擇上方喜歡的醬汁口味</div>`;
+                return;
+            }
+
+            const items = menuData[currentCategory];
+            let filteredItems = items;
+
+            if (currentSauceFilter && currentSauceFilter !== 'ALL') {
+                const keywords = sauceRules[currentSauceFilter];
+                filteredItems = items.filter(item => {
+                    return keywords.some(k => item.name.includes(k));
+                });
+            }
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div class="select-sauce-msg">此醬汁目前沒有對應餐點</div>`;
+                return;
+            }
+
+            filteredItems.forEach(item => {
+                const isNotForSale = typeof item.price !== 'number';
+                const canOrder = !isViewOnly && !isNotForSale;
+                
+                const action = canOrder ? `onclick="openModal('${item.name}', ${item.price}, '${currentCategory}')"` : '';
+                const price = isNotForSale ? item.price : `$${item.price}`;
+                const itemClass = isViewOnly ? 'menu-item disabled' : 'menu-item';
+                
+                container.innerHTML += `
+                    <div class="${itemClass}" ${action}>
+                        <div>
+                            <div style="font-weight:bold;">${item.name}</div>
+                            <div class="item-price">${price}</div>
+                        </div>
+                        ${canOrder ? '<span style="color:var(--primary-color); font-size:1.2rem;">+</span>' : ''}
+                    </div>`;
+            });
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('gallery-container');
+            container.innerHTML = '';
+            const defaultImg = 'images/home.jpg';
+            Object.keys(menuData).forEach(cat => {
+                menuData[cat].forEach(item => {
+                    const imgSrc = item.image || defaultImg;
+                    container.innerHTML += `<div class="gallery-item" onclick="openImgModal('${item.name}', '${imgSrc}')"><div class="gallery-thumb" style="background-image: url('${imgSrc}');"></div><div class="gallery-name">${item.name}</div></div>`;
+                });
+            });
+        }
+
+        function genRadio(val, label, checked=false, name="extra") { 
+            const id = name + '-' + val.replace(/\s/g, ''); 
+            return `<input type="radio" name="${name}" id="${id}" value="${val}" ${checked?'checked':''}> 
+                    <label for="${id}" class="radio-btn-label">${label}</label>`; 
+        }
+
+        function openModal(name, price, category) {
+            if (isViewOnly) return;
+            tempSelectedItem = { name, price, category };
+            document.getElementById('modal-title').innerText = name;
+
+            // 主食選擇區 (麵/飯/馬鈴薯)
+            const carbDiv = document.getElementById('carb-options-container');
+            const carbGroup = document.getElementById('carb-group');
+            carbDiv.style.display = 'block';
+
+            if (category.includes("焗烤")) {
+                if (name === "蘆筍培根捲") {
+                    // 特殊品項：只能選飯
+                    carbGroup.innerHTML = genRadio('飯', '飯', true, 'carbType');
+                } else {
+                    // 一般焗烤：細麵/筆尖/馬鈴薯
+                    carbGroup.innerHTML = 
+                        genRadio('S (細長麵)', 'S 細長麵', true, 'carbType') +
+                        genRadio('P (筆尖麵)', 'P 筆尖麵', false, 'carbType') +
+                        genRadio('馬鈴薯', '馬鈴薯', false, 'carbType');
+                }
+            } else if (name.includes("飯") || category.includes("燉飯") || category.includes("鍋燒") || category.includes("甜點")) {
+                carbDiv.style.display = 'none';
+            } else {
+                // 義大利麵：細麵/筆尖
+                carbGroup.innerHTML = 
+                    genRadio('S (細長麵)', 'S 細長麵', true, 'carbType') +
+                    genRadio('P (筆尖麵)', 'P 筆尖麵', false, 'carbType');
+                
+                if (category.includes("白酒")) {
+                    const pRadio = document.querySelector(`input[name="carbType"][value="P (筆尖麵)"]`);
+                    if(pRadio) pRadio.disabled = true;
+                }
+            }
+
+            // 加量區
+            const extraDiv = document.getElementById('extra-options-container');
+            const extraGroup = document.getElementById('extra-options-group');
+            let html = '';
+            
+            if (category.includes("鍋燒")) {
+                extraDiv.style.display = 'block'; 
+                html = genRadio('0','正常',true) + genRadio('5','加1/2 (+$5)') + genRadio('10','加2/2 (+$10)');
+            } else if (category.includes("義大利麵") || category.includes("燉飯") || category.includes("焗烤") || category.includes("白酒")) {
+                extraDiv.style.display = 'block'; 
+                html = genRadio('0','正常',true) + genRadio('10','加1/3 (+$10)') + genRadio('20','加2/3 (+$20)');
+            } else { 
+                extraDiv.style.display = 'none'; 
+            }
+            extraGroup.innerHTML = html;
+
+            document.getElementById('option-modal').classList.add('open');
+        }
+
+        function closeModal() { document.getElementById('option-modal').classList.remove('open'); }
+
+        function confirmAddToCart() {
+            if (!tempSelectedItem) return;
+            let noteParts = [];
+            let addPrice = 0;
+
+            const carbDiv = document.getElementById('carb-options-container');
+            if (carbDiv.style.display !== 'none') {
+                const selectedCarb = document.querySelector('input[name="carbType"]:checked');
+                if (selectedCarb) {
+                    let carbText = selectedCarb.value;
+                    if (carbText.includes("細長麵")) carbText = "(細麵)";
+                    else if (carbText.includes("筆尖麵")) carbText = "(筆尖)";
+                    else carbText = `(${carbText})`;
+                    noteParts.push(carbText);
+                }
+            }
+
+            const extraDiv = document.getElementById('extra-options-container');
+            if (extraDiv.style.display !== 'none') {
+                const sel = document.querySelector('input[name="extra"]:checked');
+                if (sel && sel.value > 0) { 
+                    addPrice = parseInt(sel.value); 
+                    noteParts.push(`加量(+$${addPrice})`); 
+                }
+            }
+            
+            // 把選擇的醬汁記錄下來 (如果是這三大類)
+            if (currentSauceFilter && currentSauceFilter !== 'ALL') {
+                noteParts.push(currentSauceFilter);
+            }
+
+            let finalNote = noteParts.join(" / ");
+
+            cart.push({ name: tempSelectedItem.name, finalPrice: tempSelectedItem.price + addPrice, note: finalNote });
+            updateCartUI(); 
+            closeModal();
+        }
+
+        function openImgModal(name, src) { document.getElementById('img-display').src = src; document.getElementById('img-caption').innerText = name; document.getElementById('img-modal').classList.add('open'); }
+        function closeImgModal() { document.getElementById('img-modal').classList.remove('open'); }
+
+        function updateCartUI() {
+            let total = 0;
+            const drawer = document.getElementById('cart-drawer');
+            drawer.innerHTML = '';
+            cart.forEach((item, idx) => {
+                total += item.finalPrice;
+                drawer.innerHTML += `<div class="cart-list-item"><div><b>${item.name}</b> <small style="color:#666;">${item.note}</small></div><div><b>$${item.finalPrice}</b> <button onclick="cart.splice(${idx},1);updateCartUI()" style="margin-left:5px;background:#e74c3c;color:white;border:none;border-radius:50%;width:20px;height:20px;">✕</button></div></div>`;
+            });
+            document.getElementById('total-count').innerText = cart.length;
+            document.getElementById('total-amount').innerText = total;
+            const bar = document.getElementById('cart-bar');
+            if (cart.length > 0 && document.getElementById('page-menu').classList.contains('active') && !isViewOnly) bar.classList.add('active');
+            else { bar.classList.remove('active'); toggleCart(false); }
+        }
+        function toggleCart(force) { const d = document.getElementById('cart-drawer'); const open = force !== undefined ? force : !d.classList.contains('open'); open ? d.classList.add('open') : d.classList.remove('open'); }
+        
+        function submitOrder() {
+            if (cart.length === 0) return alert("購物車是空的");
+
+            const btn = document.querySelector('#cart-bar button');
+            const originalText = btn.innerText;
+            btn.innerText = "傳送中...";
+            btn.disabled = true;
+
+            let total = 0;
+            let summaryHtml = "";
+            cart.forEach(item => {
+                total += item.finalPrice;
+                summaryHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px 0;"><span>${item.name} <small>${item.note}</small></span><span>$${item.finalPrice}</span></div>`;
+            });
+
+            const orderData = {
+                table: currentTable,
+                total: total,
+                cart: cart
+            };
+
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbzolDHjA5ymcsXOHwIq_0N6vE8awlVh9nmmeoI2z7nfhKAh0X3ZAHLxi4uxzLd6fmXUhA/exec'; 
+
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => {
+                document.getElementById('success-table').innerText = currentTable === "外帶" ? "外帶單" : `桌號：${currentTable}`;
+                document.getElementById('success-summary').innerHTML = summaryHtml;
+                document.getElementById('success-total').innerText = total;
+
+                toggleCart(false); 
+                document.getElementById('cart-bar').classList.remove('active');
+                document.getElementById('success-modal').classList.add('open');
+                
+                btn.innerText = originalText;
+                btn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert("傳送失敗，請請叫服務人員協助！");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+        function closeSuccessModal() { cart = []; updateCartUI(); document.getElementById('success-modal').classList.remove('open'); switchPage('home'); }
+
+        function switchPage(pageId) {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebar-overlay').classList.remove('active');
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            const bar = document.getElementById('cart-bar');
+            if (pageId === 'menu' && cart.length > 0 && !isViewOnly) bar.classList.add('active'); else bar.classList.remove('active');
+            if (pageId === 'menu') { renderCategories(); renderSauceBar(); renderMenu(); }
+            if (pageId === 'gallery') { renderGallery(); }
+            window.scrollTo(0, 0);
+        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
+    </script>
+</body>
+</html>
