@@ -383,13 +383,12 @@
         let tempSelectedItem = null;
         let currentSauceFilter = null; 
 
-        // 醬汁關鍵字 (義大利麵/燉飯/焗烤 共用)
         const sauceRules = {
             "白醬": ["奶油", "白醬", "蘑菇"], 
             "紅醬": ["番茄", "紅醬"],
             "青醬": ["青醬", "羅勒"],
             "南瓜醬": ["南瓜"],
-            "蘆筍培根捲": ["蘆筍培根捲"]
+            "蘆筍培根捲": ["蘆筍培根捲"] 
         };
 
         function checkBusinessStatus() {
@@ -430,11 +429,11 @@
             renderMenu(); 
         }
 
-        // --- 核心修改：判斷哪些類別需要選醬汁 ---
+        //焗烤類顯示「蘆筍培根捲」按鈕
         function renderSauceBar() {
             const sauceBar = document.getElementById('sauce-bar');
             
-            // 1. 義大利麵 & 燉飯 (標準 4 種)
+            // 1. 義大利麵 & 燉飯 (4 種)
             if (currentCategory.includes("義大利麵") || currentCategory.includes("燉飯")) {
                 sauceBar.style.display = 'flex';
                 sauceBar.innerHTML = '';
@@ -444,7 +443,7 @@
                     sauceBar.innerHTML += `<button class="sauce-btn ${active}" onclick="changeSauce('${sauceName}')">${sauceName}</button>`;
                 });
             } 
-            // 2. 焗烤系列 (標準 4 種 + 蘆筍培根捲)
+            // 2. 焗烤系列 (4 種 + 蘆筍培根捲)
             else if (currentCategory.includes("焗烤")) {
                 sauceBar.style.display = 'flex';
                 sauceBar.innerHTML = '';
@@ -541,10 +540,10 @@
 
             if (category.includes("焗烤")) {
                 if (name === "蘆筍培根捲") {
-                    // 特殊品項：只能選飯
+                    // 蘆筍培根捲：只能選飯
                     carbGroup.innerHTML = genRadio('飯', '飯', true, 'carbType');
                 } else {
-                    // 一般焗烤：細麵/筆尖/馬鈴薯
+                    // 焗烤：S/P/馬鈴薯
                     carbGroup.innerHTML = 
                         genRadio('S (細長麵)', 'S 細長麵', true, 'carbType') +
                         genRadio('P (筆尖麵)', 'P 筆尖麵', false, 'carbType') +
@@ -553,7 +552,7 @@
             } else if (name.includes("飯") || category.includes("燉飯") || category.includes("鍋燒") || category.includes("甜點")) {
                 carbDiv.style.display = 'none';
             } else {
-                // 義大利麵：細麵/筆尖
+                // 義大利麵：S/P
                 carbGroup.innerHTML = 
                     genRadio('S (細長麵)', 'S 細長麵', true, 'carbType') +
                     genRadio('P (筆尖麵)', 'P 筆尖麵', false, 'carbType');
@@ -595,8 +594,8 @@
                 const selectedCarb = document.querySelector('input[name="carbType"]:checked');
                 if (selectedCarb) {
                     let carbText = selectedCarb.value;
-                    if (carbText.includes("細長麵")) carbText = "(細麵)";
-                    else if (carbText.includes("筆尖麵")) carbText = "(筆尖)";
+                    if (carbText.includes("細長麵")) carbText = "(S)";
+                    else if (carbText.includes("筆尖麵")) carbText = "(P)";
                     else carbText = `(${carbText})`;
                     noteParts.push(carbText);
                 }
@@ -609,11 +608,6 @@
                     addPrice = parseInt(sel.value); 
                     noteParts.push(`加量(+$${addPrice})`); 
                 }
-            }
-            
-            // 把選擇的醬汁記錄下來 (如果是這三大類)
-            if (currentSauceFilter && currentSauceFilter !== 'ALL') {
-                noteParts.push(currentSauceFilter);
             }
 
             let finalNote = noteParts.join(" / ");
